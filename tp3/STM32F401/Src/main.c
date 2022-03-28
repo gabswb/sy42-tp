@@ -36,14 +36,14 @@ int main(void)
 
 	TIM_TypeDef* tim3 = TIM3;
 	GPIO_TypeDef * PA = GPIOA, *PC = GPIOC;
-	int is_activate = 1;
+	int is_activate = 0;
 
 
 
-	//CK_NT * PSC = CK_CNT => PSC= CK_CNT / CK_INIT = 10/16000
-	tim3->PSC = (16-1/1)*1000;
-	//auto reload = T_timer/(PSC*CK_INT) - 1 = 1/2*10000 -1
-	tim3->ARR = 1/(2*10000) -1;
+	//CK_CNT * PSC = CK_PSC => PSC= CK_PSC / CK_CNT = 16 000/10
+	tim3->PSC = (16-1/10)*1000;
+	//auto reload = CK_PSC / f_led = 10000/2 - 1
+	tim3->ARR = 10000/2 - 1;
 	//set EGR register bit to 1 to force the update and start the count at 0
 	tim3->EGR |= TIM_EGR_UG_Msk;
 	//set bit OGR from CR1 register of TIM3 to 1 for 'one shot' behaviour
@@ -57,49 +57,42 @@ int main(void)
 
 	for(;;){
 
-		/* activation alternate fonction pour GPIOB pour la pin PB7*/
-		GPIOB->MODER &= ~GPIO_MODER_MODER7_Msk;// mise à '10' des bits du registre moder7 pour alternate fonction
-		GPIOB->MODER |= GPIO_MODER_MODER7_1;
-		GPIOB->AFR[0] &= (0xF<<1*4);// dans la data sheet, section alternate fonction mapping p44, on voit que TIM4_CH2 est mappé avec la fonction alternative AF02 sur la pin PA1
-		GPIOB->AFR[0] |= (2<<1*4);
+		/** clignotage de led**/
+		while(!(tim3->SR & ~TIM_SR_UIF_Msk)){
+		}
+		if(is_activate){
+			/* éteint la led */
+			PA->ODR = PA->ODR & ~(1<<5);// met le bit 5 à 0
+			//PA->ODR &= ~GPIO_ODR_OD5;
+		}
+		else{
+			/* allume la led */
+			PA->ODR = PA->ODR | 1<<5; // met le bit 5 à 1
+			//PA->ODR |= GPIO_ODR_OD5;	//(1<<5);
+		}
 
-		/* désactivation input caputre mode */
-		TIM4->CCER &= ~TIM_CCER_CC1E_Msk;
-		TIM4->CCER &= ~TIM_CCER_CC2E_Msk;
-
-		/* modification de CCMRR1 */
-		TIM4->CCMR1
-
-
-
-
-
-
-
-
-
-//		/** clignotage de led**/
-//		while(!(tim3->SR & ~TIM_SR_UIF_Msk)){
-//		}
-//		if(is_activate){
-//			/* éteint la led */
-//			PA->ODR = PA->ODR & ~(1<<5);// met le bit 5 à 0
-//			//PA->ODR &= ~GPIO_ODR_OD5;
-//		}
-//		else{
-//			/* allume la led */
-//			PA->ODR = PA->ODR | 1<<5; // met le bit 5 à 1
-//			//PA->ODR |= GPIO_ODR_OD5;	//(1<<5);
-//		}
-//
-//		tim3->SR &= ~TIM_SR_UIF_Msk;
+		tim3->SR &= ~TIM_SR_UIF_Msk;
 	}
 	return 0;
 }
 //alternate fonction 2 au tim4 ch2 (ti2)
 //pb7 c'est GPIOB
 
+void input_capture_mode()
+{
+	/* activation alternate fonction pour GPIOB pour la pin PB7*/
+	GPIOB->MODER &= ~GPIO_MODER_MODER7_Msk;// mise à '10' des bits du registre moder7 pour alternate fonction
+	GPIOB->MODER |= GPIO_MODER_MODER7_1;
+	GPIOB->AFR[0] &= (0xF<<1*4);// dans la data sheet, section alternate fonction mapping p44, on voit que TIM4_CH2 est mappé avec la fonction alternative AF02 sur la pin PA1
+	GPIOB->AFR[0] |= (2<<1*4);
 
+	/* désactivation input caputre mode */
+	TIM4->CCER &= ~TIM_CCER_CC1E_Msk;
+	TIM4->CCER &= ~TIM_CCER_CC2E_Msk;
+
+	/* modification de CCMRR1 */
+	TIM4->CCMR1;
+}
 
 void led_init()
 {
