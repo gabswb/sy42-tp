@@ -53,8 +53,8 @@ all: main-build
 main-build: STM32F401.elf secondary-outputs
 
 # Tool invocations
-STM32F401.elf: $(OBJS) $(USER_OBJS) U:\SY42\tp3_gabriel_schwab\STM32F401.zip_expanded\STM32F401\STM32F401RETX_FLASH.ld
-	arm-none-eabi-gcc -o "STM32F401.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"U:\SY42\tp3_gabriel_schwab\STM32F401.zip_expanded\STM32F401\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM32F401.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+STM32F401.elf: $(OBJS) $(USER_OBJS) U:\SY42\sy42-tp\tp3\STM32F401\STM32F401RETX_FLASH.ld
+	arm-none-eabi-gcc -o "STM32F401.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"U:\SY42\sy42-tp\tp3\STM32F401\STM32F401RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM32F401.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
