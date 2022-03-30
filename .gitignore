@@ -1,1 +1,9 @@
 *.metadata
+**/Debug/
+Debug/
+*.settings
+*/Debug/
+tp3/STM32F401/Debug/
+*.config
+*.launch
+

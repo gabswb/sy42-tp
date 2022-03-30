@@ -33,7 +33,6 @@ static void pin_init(void);
 int main(void)
 {
 
-
 	/* 2 port instance are declared and mapped on GPIOA and GPIOC address
 		 * GPIOA and GPIOC are constant address defined in stm32f401xe.h
 		 */
@@ -80,7 +79,6 @@ int main(void)
 
 
 
-		TIM_TypeDef* tim3 = TIM3;
 		int is_activate = 0;
 
 		RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
@@ -123,7 +121,6 @@ int main(void)
 		//----------------------------------------------------------------------partie 2 bouton timer---------------------------------------------
 
 
-
 		/* activation alternate fonction pour GPIOB pour la pin PB7*/
 		GPIOB->MODER &= ~GPIO_MODER_MODER7_Msk;// mise à '10' des bits du registre moder7 pour alternate fonction
 		GPIOB->MODER |= GPIO_MODER_MODER7_1;
@@ -150,12 +147,21 @@ int main(void)
 		//TIM4->CCER;
 
 
+void input_capture_mode()
+{
+	/* activation alternate fonction pour GPIOB pour la pin PB7*/
+	GPIOB->MODER &= ~GPIO_MODER_MODER7_Msk;// mise à '10' des bits du registre moder7 pour alternate fonction
+	GPIOB->MODER |= GPIO_MODER_MODER7_1;
+	GPIOB->AFR[0] &= (0xF<<1*4);// dans la data sheet, section alternate fonction mapping p44, on voit que TIM4_CH2 est mappé avec la fonction alternative AF02 sur la pin PA1
+	GPIOB->AFR[0] |= (2<<1*4);
 
+	/* désactivation input caputre mode */
+	TIM4->CCER &= ~TIM_CCER_CC1E_Msk;
+	TIM4->CCER &= ~TIM_CCER_CC2E_Msk;
 
-
-
-
-
+	/* modification de CCMRR1 */
+	TIM4->CCMR1;
+}
 
 
 
