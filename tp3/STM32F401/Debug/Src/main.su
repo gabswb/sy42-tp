@@ -1,0 +1,5 @@
+main.c:32:5:main	80	static
+main.c:314:6:input_capture_mode	4	static
+main.c:335:6:TIM2_init_pwm	4	static
+main.c:375:6:TIM2_set_pwn	16	static
+main.c:380:7:compute_duration	32	static

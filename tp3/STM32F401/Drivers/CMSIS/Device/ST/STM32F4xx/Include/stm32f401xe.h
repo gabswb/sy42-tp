@@ -6430,7 +6430,7 @@ typedef struct
 #define TIM_CCER_CC1E_Pos         (0U)                                         
 #define TIM_CCER_CC1E_Msk         (0x1UL << TIM_CCER_CC1E_Pos)                  /*!< 0x00000001 */
 #define TIM_CCER_CC1E             TIM_CCER_CC1E_Msk                            /*!<Capture/Compare 1 output enable                 */
-#define TIM_CCER_CC1P_Pos         (1U)                                         
+#define TIM_CCER_CC1P_Pos         (1U)
 #define TIM_CCER_CC1P_Msk         (0x1UL << TIM_CCER_CC1P_Pos)                  /*!< 0x00000002 */
 #define TIM_CCER_CC1P             TIM_CCER_CC1P_Msk                            /*!<Capture/Compare 1 output Polarity               */
 #define TIM_CCER_CC1NE_Pos        (2U)                                         
