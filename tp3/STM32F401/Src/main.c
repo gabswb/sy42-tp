@@ -23,6 +23,9 @@ volatile int gnr=5 ;
  */
 static void pin_init(void);
 
+void gpio_init(void);
+void TIM3_init(void);
+
 
 /**
   * @brief main function
@@ -33,72 +36,8 @@ static void pin_init(void);
 int main(void)
 {
 
-	/* 2 port instance are declared and mapped on GPIOA and GPIOC address
-		 * GPIOA and GPIOC are constant address defined in stm32f401xe.h
-		 */
-		GPIO_TypeDef * PA = GPIOA, *PC = GPIOC, *PB = GPIOB;
-
-		/* modify bit 0 and 3 of RCC AHB1ENR register to enable the clock
-		 * of GPIOA and GPOC
-		 * RCC is macro definced in stm32f401xe.h and RCC_AHB1ENR_GPIOAEN and
-		 * RCC_AHB1ENR_GPIOCEN RCC_AHB1ENR_GPIOCEN are constant also defined in
-		 * stm32f401xe.h
-		 */
-		RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOCEN | RCC_AHB1ENR_GPIOBEN;
-
-		/* GPIOA configuration :  output, slow speed, push-pull, no pull
-		 * After reset, only the output mode should be set. the other configuration
-		 * are correct.
-		 */
-		/* PA5 in output mode */
-		PA->MODER &= ~GPIO_MODER_MODER5_Msk; /* GPIO_MODER_MODER5_Msk : constante
-												dÃ©finie dans stm32f401xe.h */
-		PA->MODER |= GPIO_MODER_MODER5_0;	/* GPIO_MODER_MODER5_0, constante
-												dÃ©finie dans stm32f401xe.h */
-		/* Si on considÃ¨re que PA est dans un Ã©tat indÃ©terminÃ© */
-		/* output push pull */
-		PA->OTYPER &= ~GPIO_OTYPER_OT5_Msk;			// clear bit field
-		/* slow speed, better for low electrical interference (less noisy) */
-		PA->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED5_Msk;	// clear bit field
-		/* no pull-up or pull-down resistor */
-		PA->PUPDR &= ~GPIO_PUPDR_PUPD5_Msk;			// clear bit field
-
-		/* configure PC13 : input, no pull */
-		PC->MODER &= ~GPIO_MODER_MODE13_Msk;		// clear bit field
-		PC->PUPDR &= ~GPIO_PUPDR_PUPD13_Msk;		// clear bit field
-		/* other config registers are irrelevant for pins in input mode */
-
-		/* Activer horloger GPIOA */
-
-		/* PA2(TX) en alternate function nÂ°7 */
-		PB->AFR[0] &= ~GPIO_AFRL_AFRL7;
-		PB->AFR[0] |= GPIO_AFRL_AFRL7_1;
-		/* alternate function PA7*/
-		PB->MODER &= ~GPIO_MODER_MODER7;
-		PB->MODER |= GPIO_MODER_MODER7_1;
-
-
-
-		int is_activate = 0;
-
-		RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
-
-		//CK_CNT * PSC = CK_PSC => PSC= CK_PSC / CK_CNT = 16 000/10
-		TIM3->PSC = SystemCoreClock /10000 -1;
-		//auto reload = CK_PSC / f_led = 10000/2 - 1
-		TIM3->ARR = 10000/10/2 - 1;
-		//set EGR register bit to 1 to force the update and start the count at 0
-		TIM3->EGR &= ~TIM_EGR_UG;
-		TIM3->EGR |= TIM_EGR_UG_Msk;
-		//set bit OGR from CR1 register of TIM3 to 1 for 'one shot' behaviour
-		//TIM3->CCR1 |= TIM_CR1_OPM_Msk;
-		//errase status register (p347 'reset value = 0x0000')
-		TIM3->SR = 0;
-		//start timer
-		TIM3->CR1 |= TIM_CR1_CEN_Msk;
-
-
 //----------------------------------------------------------------------partie 1 clignotement led---------------------------------------------
+//	int is_activate = 0;
 //	for(;;){
 //
 //		/** clignotage de led**/
@@ -119,6 +58,7 @@ int main(void)
 //		}
 //	}
 		//----------------------------------------------------------------------partie 2 bouton timer---------------------------------------------
+
 
 
 		/* activation alternate fonction pour GPIOB pour la pin PB7*/
@@ -214,5 +154,68 @@ void TIM2_set_pwn(unint32_t duty)
 }
 
 
+void gpio_init(void)
+{
+	/* 2 port instance are declared and mapped on GPIOA and GPIOC address
+	 * GPIOA and GPIOC are constant address defined in stm32f401xe.h
+	 */
+	GPIO_TypeDef * PA = GPIOA, *PC = GPIOC, *PB = GPIOB;
 
+	/* modify bit 0 and 3 of RCC AHB1ENR register to enable the clock
+	 * of GPIOA and GPOC
+	 * RCC is macro definced in stm32f401xe.h and RCC_AHB1ENR_GPIOAEN and
+	 * RCC_AHB1ENR_GPIOCEN RCC_AHB1ENR_GPIOCEN are constant also defined in
+	 * stm32f401xe.h
+	 */
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOCEN | RCC_AHB1ENR_GPIOBEN;
 
+	/* GPIOA configuration :  output, slow speed, push-pull, no pull
+	 * After reset, only the output mode should be set. the other configuration
+	 * are correct.
+	 */
+	/* PA5 in output mode */
+	PA->MODER &= ~GPIO_MODER_MODER5_Msk; /* GPIO_MODER_MODER5_Msk : constante
+											dÃ©finie dans stm32f401xe.h */
+	PA->MODER |= GPIO_MODER_MODER5_0;	/* GPIO_MODER_MODER5_0, constante
+											dÃ©finie dans stm32f401xe.h */
+	/* Si on considÃ¨re que PA est dans un Ã©tat indÃ©terminÃ© */
+	/* output push pull */
+	PA->OTYPER &= ~GPIO_OTYPER_OT5_Msk;			// clear bit field
+	/* slow speed, better for low electrical interference (less noisy) */
+	PA->OSPEEDR &= ~GPIO_OSPEEDR_OSPEED5_Msk;	// clear bit field
+	/* no pull-up or pull-down resistor */
+	PA->PUPDR &= ~GPIO_PUPDR_PUPD5_Msk;			// clear bit field
+
+	/* configure PC13 : input, no pull */
+	PC->MODER &= ~GPIO_MODER_MODE13_Msk;		// clear bit field
+	PC->PUPDR &= ~GPIO_PUPDR_PUPD13_Msk;		// clear bit field
+	/* other config registers are irrelevant for pins in input mode */
+
+	/* Activer horloger GPIOA */
+
+	/* PA2(TX) en alternate function nÂ°7 */
+	PB->AFR[0] &= ~GPIO_AFRL_AFRL7;
+	PB->AFR[0] |= GPIO_AFRL_AFRL7_1;
+	/* alternate function PA7*/
+	PB->MODER &= ~GPIO_MODER_MODER7;
+	PB->MODER |= GPIO_MODER_MODER7_1;
+}
+
+void TIM3_init(void)
+{
+	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
+
+	//CK_CNT * PSC = CK_PSC => PSC= CK_PSC / CK_CNT = 16 000/10
+	TIM3->PSC = SystemCoreClock /10000 -1;
+	//auto reload = CK_PSC / f_led = 10000/2 - 1
+	TIM3->ARR = 10000/10/2 - 1;
+	//set EGR register bit to 1 to force the update and start the count at 0
+	TIM3->EGR &= ~TIM_EGR_UG;
+	TIM3->EGR |= TIM_EGR_UG_Msk;
+	//set bit OGR from CR1 register of TIM3 to 1 for 'one shot' behaviour
+	//TIM3->CCR1 |= TIM_CR1_OPM_Msk;
+	//errase status register (p347 'reset value = 0x0000')
+	TIM3->SR = 0;
+	//start timer
+	TIM3->CR1 |= TIM_CR1_CEN_Msk;
+}
