@@ -1,0 +1,7 @@
+../Src/usart.c:9:6:USART2_Init	32	static
+../Src/usart.c:74:5:__io_putchar	16	static
+../Src/usart.c:87:5:__io_getchar	4	static
+../Src/usart.c:101:10:USART2_Transmit	24	static
+../Src/usart.c:120:10:USART2_Print	16	static
+../Src/usart.c:130:10:USART2_Receive	24	static
+../Src/usart.c:173:6:USART2_DeInit	4	static
