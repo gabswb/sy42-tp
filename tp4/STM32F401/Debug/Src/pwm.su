@@ -1,0 +1,3 @@
+pwm.c:12:6:TIM2_init_PWM	24	static
+pwm.c:49:6:TIM2_set_PWM	16	static
+pwm.c:53:7:compute_duration	32	static
