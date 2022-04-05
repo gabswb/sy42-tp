@@ -13,6 +13,6 @@
 void TIM2_init_PWM(void);
 void TIM2_set_PWM(uint32_t duty);
 
-float compute_duration(uint16_t begin, uint16_t end, uint16_t nb_overflows, int arr, int freq);
+float compute_duration(uint16_t begin, uint16_t end, uint16_t nb_overflows, int arr, int periode);
 
 #endif /* PWM_H_ */

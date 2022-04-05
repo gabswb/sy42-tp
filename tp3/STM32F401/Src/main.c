@@ -19,7 +19,7 @@ float compute_duration(uint16_t begin, uint16_t end, uint16_t nb_overflows, int 
   * @retval 0 if success
  */
 
-#ifdef EXERCISE_2
+//#ifdef EXERCISE_2
 int main(void)
 {
 
@@ -164,7 +164,7 @@ int main(void)
 
 	return 0;
 }
-#endif
+//#endif
 
 #ifdef EXERCISE_3
 int main(void)
@@ -245,7 +245,7 @@ int main(void)
 	return 0;
 
 }
-
+#endif
 
 
 float compute_duration(uint16_t begin, uint16_t end, uint16_t nb_overflows, int arr, int freq)
@@ -255,4 +255,4 @@ float compute_duration(uint16_t begin, uint16_t end, uint16_t nb_overflows, int 
 
 	return cnt_time*nb_cnt;
 }
-#endif
+

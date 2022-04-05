@@ -13,7 +13,6 @@
 
 
 
-
 /**
   * @brief main function
   * @param  none
@@ -125,45 +124,49 @@ int main(void)
 	TIM4->CCER |= TIM_CCER_CC1E_Msk;
 	TIM4->CCER |= TIM_CCER_CC2E_Msk;
 
-	/* Lancement du compteur*/
-	TIM4->CR1 |= TIM_CR1_CEN_Msk;
+	/*lance le compteur*/
+	TIM4->CR1 |= TIM_CR1_CEN ;
 
 
 	/**
 	 * ------------------BOUCLE PRINCIPALE---------------------------------
 	 */
+ 	/*remise à 0 du drapeau d'état*/
+	TIM4->SR &= ~TIM_SR_CC2IF;
+ 	TIM4->SR &= ~TIM_SR_UIF;
+ 	TIM4->SR &= ~TIM_SR_CC1IF_Msk;
+
 
 	USART2_Print("INPUT CAPTURE MODE\r\n");
-	TIM4_set_periodic_IRQ(1);
+	TIM4_set_periodic_IRQ(500);
 
-	/*variable globale transférées dans time.h
-	char buffer[256];
+	USART2_Print("Input/Capture Mode configuré\r\n");
+
+
+	/*char buffer[256];
 	float duration;
 	uint16_t begin=0, end=0, nb_overflows=0;*/
-
 	while(1){
-
-		/*while((TIM4->SR & TIM_SR_CC2IF_Msk)==0){}//Attente de détéction du font descendant
-
-		begin = TIM4->CCR2;//récupération de la valeur de compteur stockée dans CCR2
+		/*while((TIM4->SR & TIM_SR_CC2IF_Msk)==0){}
+		begin = TIM4->CCR2;
 		USART2_Print("falling edge\r\n");
 		nb_overflows = 0;
 
-		while((TIM4->SR & TIM_SR_CC1IF_Msk)==0){//détéction du font montant
-			if(TIM4->SR & TIM_SR_UIF_Msk){//Détéction d'overflows
+		while((TIM4->SR & TIM_SR_CC1IF_Msk)==0){
+			if(TIM4->SR & TIM_SR_UIF_Msk){
 				nb_overflows++;
 				TIM4->SR &= ~TIM_SR_UIF;
 			 }
 		}
-		end = TIM4->CCR1;//récupération de la valeur de compteur stockée dans CCR2
-		USART2_Print("rising edge\n");
 
-		sprintf(buffer, "begin = %d, nb_of_overflows = %d, end = %d\r\n", begin, nb_overflows, end);
+		end = TIM4->CCR1;
+		USART2_Print("rising edge\n");
+		sprintf(buffer, "beg = %d, count = %d, end = %d\r\n", begin, nb_overflows, end);
 		USART2_Print(buffer);
 		duration = compute_duration(begin, end, nb_overflows, arr, update_freq);
-		sprintf(buffer, "duration = %f\r\n", duration);
+		sprintf(buffer, "result = %f\r\n", duration);
 		USART2_Print(buffer);*/
-	}
+		}
 
 	return 0;
 }
@@ -202,30 +205,30 @@ int main(void)
 	/* Activation horlgoe du TIM3 */
 	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;
 
-	/* Fréquence d'horloge en sortie (counter_clock) du prescaler à 10kHz */
-	int freq_after_psc = 10000;
-	TIM3->PSC = (SystemCoreClock / freq_after_psc) -1; // 1599 pour une fréquence cible de 10kHz
-
-
-	int update_freq = 2;//fréquence de sortie en Hz
-	int arr = SystemCoreClock / (update_freq * TIM3->PSC + 1);
-	TIM3->ARR = arr; // Granularité de 1000
-
-	/* Configuration du mode PWM 1 : '110'*/
-	TIM3->CCMR1 |= TIM_CCMR1_OC1M;
-	TIM3->CCMR1 &= ~TIM_CCMR1_OC1M_0;
-
-	/* Activation de la sortie*/
-	TIM3->CCER |= TIM_CCER_CC1E;
-
-	/* force le compteur et le prescaler à O avant le démarrage*/
-	TIM4->EGR |= TIM_EGR_UG_Msk;
-
-	/* reset les flags */
-	TIM4->SR = 0;
-
-	/* Lancement du compteur */
-	TIM3->CR1 |= TIM_CR1_CEN;
+//	/* Fréquence d'horloge en sortie (counter_clock) du prescaler à 10kHz */
+//	int freq_after_psc = 10000;
+//	TIM3->PSC = (SystemCoreClock / freq_after_psc) -1; // 1599 pour une fréquence cible de 10kHz
+//
+//
+//	int update_freq = 2;//fréquence de sortie en Hz
+//	int arr = SystemCoreClock / (update_freq * TIM3->PSC + 1);
+//	TIM3->ARR = arr; // Granularité de 1000
+//
+//	/* Configuration du mode PWM 1 : '110'*/
+//	TIM3->CCMR1 |= TIM_CCMR1_OC1M;
+//	TIM3->CCMR1 &= ~TIM_CCMR1_OC1M_0;
+//
+//	/* Activation de la sortie*/
+//	TIM3->CCER |= TIM_CCER_CC1E;
+//
+//	/* force le compteur et le prescaler à O avant le démarrage*/
+//	TIM4->EGR |= TIM_EGR_UG_Msk;
+//
+//	/* reset les flags */
+//	TIM4->SR = 0;
+//
+//	/* Lancement du compteur */
+//	TIM3->CR1 |= TIM_CR1_CEN;
 
 
 
@@ -235,7 +238,7 @@ int main(void)
 
 	int luminosity[] = {0,11,29,62,112,184,280,407,566,762,999};
 	int i=0;
-	TIM3_set_periodic_IRQ((uint32_t) 1);
+	TIM3_set_periodic_IRQ((uint32_t) 500);
 	while(1){
 		/*if(TIM3->SR & TIM_SR_UIF_Msk){
 			TIM2_set_PWM(luminosity[i]);

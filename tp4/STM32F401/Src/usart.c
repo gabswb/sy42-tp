@@ -1,5 +1,6 @@
 #include "stm32f4xx.h"
 #include "string.h"
+#include "usart.h"
 
 /**
   * @brief  Init USART2 @ baud,8,1,n
@@ -119,6 +120,33 @@ uint32_t USART2_Transmit(uint8_t * data, uint32_t len)
 
 uint32_t USART2_Print(char* str){
     return USART2_Transmit((uint8_t*) str, strlen(str));
+}
+
+
+int32_t USART2_transmit_IRQ (uint8_t * data, uint32_t len){
+
+	/* définit piorité de prise en compte de l'interruption au niveau du NVIC*/
+	NVIC_SetPriority(USART2_IRQn,10);
+	/* autorise les interruptions au niveau du NVIC*/
+	NVIC_EnableIRQ(USART2_IRQn);
+	/*autorise IRQ sur le flag UIF*/
+	USART2->CR1 |= USART_CR1_TXEIE;
+
+	index_transmit = 0;
+
+
+}
+
+void USART2_IRQHandler(uint8_t * data, uint32_t len) {
+
+	if((USART2->SR & USART_SR_TXE) && (USART2->CR1 & USART_CR1_TXEIE)){
+		USART2->DR = *data+=index_transmit;
+		index_transmit++;
+		USART2->SR &= ~USART_SR_TXE;
+	}
+	if(index_transmit > len){
+		index_transmit = 0;
+	}
 }
 
 /**
