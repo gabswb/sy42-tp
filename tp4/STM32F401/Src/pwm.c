@@ -50,13 +50,6 @@ void TIM2_set_PWM(uint32_t duty) {
     TIM2->CCR1 = (duty * TIM2->ARR) / 1000;
 }
 
-float compute_duration(uint16_t begin, uint16_t end, uint16_t nb_overflows, int arr, int periode)
-{
-	float nb_cnt = end-begin + nb_overflows*arr;//nb of tics by the counter
-	//float cnt_time =(float) 1/freq;//duration of 1 tic in second
 
-	return periode*nb_cnt;
-
-}
 
 

@@ -123,29 +123,31 @@ uint32_t USART2_Print(char* str){
 }
 
 
-int32_t USART2_transmit_IRQ (uint8_t * data, uint32_t len){
+int32_t USART2_transmit_IRQ (uint8_t * data_p, uint32_t len_p){
 
-	/* définit piorité de prise en compte de l'interruption au niveau du NVIC*/
-	NVIC_SetPriority(USART2_IRQn,10);
-	/* autorise les interruptions au niveau du NVIC*/
-	NVIC_EnableIRQ(USART2_IRQn);
+	if(USART2->CR1 & USART_CR1_TXEIE) return -1;
+
 	/*autorise IRQ sur le flag UIF*/
 	USART2->CR1 |= USART_CR1_TXEIE;
 
+	data=data_p;
+	len = len_p;
 	index_transmit = 0;
 
-
+	return 0;
 }
 
-void USART2_IRQHandler(uint8_t * data, uint32_t len) {
+void USART2_IRQHandler() {
 
 	if((USART2->SR & USART_SR_TXE) && (USART2->CR1 & USART_CR1_TXEIE)){
-		USART2->DR = *data+=index_transmit;
+		USART2->DR = *data++;
 		index_transmit++;
-		USART2->SR &= ~USART_SR_TXE;
 	}
-	if(index_transmit > len){
+
+	/*Quand la transmission est terminée*/
+	if(index_transmit >= len){
 		index_transmit = 0;
+		USART2->CR1 &= ~USART_CR1_TXEIE;
 	}
 }
 

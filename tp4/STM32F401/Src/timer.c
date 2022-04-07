@@ -67,7 +67,7 @@ void TIM4_IRQHandler(void){
 	 * teste si le drapeau relatif à l'interruption est à '1' et  teste si l'interruption relative à ce drapeau est autorisée*/
  	if((TIM4->SR & TIM_SR_CC2IF) && (TIM4->DIER & TIM_DIER_CC2IE)){
  		begin = TIM4->CCR2;
-		USART2_Print("falling edge\r\n");
+ 		//USART2_transmit_IRQ("falling edge\r\n", 14);
 
  	/*remise à 0 du drapeau d'état*/
 	TIM3->SR &= ~TIM_SR_CC2IF;
@@ -90,14 +90,14 @@ void TIM4_IRQHandler(void){
  	if((TIM4->SR & TIM_SR_CC1IF_Msk) && (TIM4->DIER & TIM_DIER_CC1IE)){
 
 		end = TIM4->CCR1;//récupération de la valeur de compteur stockée dans CCR2
-		USART2_Print("rising edge\n");
+		//USART2_transmit_IRQ("rising edge\r\n", 13);
 
-		sprintf(buffer, "begin = %d, nb_of_overflows = %d, end = %d\r\n", begin, nb_overflows, end);
-		USART2_Print(buffer);
+		duration = compute_duration(begin, end, nb_overflows, TIM4->ARR,CK_CNT_F);
+
+		int str_len = snprintf(buffer, 255,"begin = %d, nb_of_overflows = %d, end = %d\r\n "
+											"duration : %f s\r\n", begin, nb_overflows, end,duration);
+		USART2_transmit_IRQ(buffer, str_len);
 		//la fréquence d'update = SystemCoreClock/(TIM4->ARR * (TIM4->PSC+1))
-		duration = compute_duration(begin, end, nb_overflows, TIM4->ARR,tim_freq*1000 );
-		sprintf(buffer, "duration = %f\r\n", duration);
-		USART2_Print(buffer);
 
 		duration=0;
 		begin=0;
@@ -112,10 +112,17 @@ void TIM4_IRQHandler(void){
 }
 
 
+float compute_duration(uint16_t begin, uint16_t end, uint16_t nb_overflows, int arr, int periode)
+{
+	float nb_cnt = end-begin + nb_overflows*arr;//nb of tics by the counter
+	float ck_cnt_T =(float) 1/CK_CNT_F;//duration of 1 tic (ck_cnt) in second
 
+	return ck_cnt_T*nb_cnt;
+
+}
 
 /**
- * @brief  Setup the TIM3 to generate ms cycles,
+ * @brief  Setup the TIM in parameter to generate ms cycles,
  *         configured here with a ck_cnt_f = 10kHz clk for the 16 bits counter
  *         so ms can go up to 65535/10 ms (65,535 secondes)
  * @param  ms : duration of the cycle
@@ -124,7 +131,7 @@ void TIM4_IRQHandler(void){
  void TIM_set_periodic_event(uint32_t ms, TIM_TypeDef* tim)
  {
 	/* choose the counter clock frequency. */
-	uint32_t ck_cnt_f = 10000;
+	uint32_t ck_cnt_f = CK_CNT_F;
 
 	/* enable tim peripheral clock on APB1 */
 	RCC->APB1ENR |= RCC_APB1ENR_TIM3EN;		/* activate TIM3 Clock */

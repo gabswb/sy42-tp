@@ -1,11 +1,9 @@
-core_cm4.h:1688:22:__NVIC_EnableIRQ	16	static
-core_cm4.h:1816:22:__NVIC_SetPriority	16	static
 usart.c:10:6:USART2_Init	32	static
 usart.c:75:5:__io_putchar	16	static
 usart.c:88:5:__io_getchar	4	static
 usart.c:102:10:USART2_Transmit	24	static
 usart.c:121:10:USART2_Print	16	static
-usart.c:125:6:USART2_set_periodic_IRQ	8	static
-usart.c:137:9:USART2_transmit_IRQ	16	static
-usart.c:155:10:USART2_Receive	24	static
-usart.c:198:6:USART2_DeInit	4	static
+usart.c:126:9:USART2_transmit_IRQ	16	static
+usart.c:140:6:USART2_IRQHandler	4	static
+usart.c:160:10:USART2_Receive	24	static
+usart.c:203:6:USART2_DeInit	4	static

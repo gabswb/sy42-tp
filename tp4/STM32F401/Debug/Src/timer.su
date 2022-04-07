@@ -3,5 +3,6 @@ core_cm4.h:1816:22:__NVIC_SetPriority	16	static
 timer.c:12:6:TIM3_set_periodic_IRQ	16	static
 timer.c:27:6:TIM3_IRQHandler	8	static
 timer.c:39:6:TIM4_set_periodic_IRQ	16	static
-timer.c:65:6:TIM4_IRQHandler	24	static
-timer.c:124:7:TIM_set_periodic_event	24	static
+timer.c:65:6:TIM4_IRQHandler	48	static
+timer.c:115:7:compute_duration	32	static
+timer.c:131:7:TIM_set_periodic_event	24	static

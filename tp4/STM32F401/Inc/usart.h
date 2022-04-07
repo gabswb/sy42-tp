@@ -6,6 +6,9 @@ uint32_t USART2_Transmit(uint8_t * data, uint32_t len);
 uint32_t USART2_Receive(uint8_t * data, uint32_t len);
 
 int index_transmit;
+int len;
+char* data;
+
 
 int32_t USART2_transmit_IRQ (uint8_t * data, uint32_t len);
 

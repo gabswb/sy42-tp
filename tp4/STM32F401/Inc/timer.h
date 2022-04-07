@@ -13,6 +13,7 @@
 #include "pwm.h"
 #include "usart.h"
 
+#define CK_CNT_F 10000
 
 int index;
 
@@ -30,6 +31,7 @@ void TIM3_IRQHandler(void);
 void TIM4_set_periodic_IRQ(uint32_t ms);
 void TIM4_IRQHandler(void);
 
+float compute_duration(uint16_t begin, uint16_t end, uint16_t nb_overflows, int arr, int periode);
 void TIM_set_periodic_event(uint32_t ms, TIM_TypeDef* tim);
 
 #endif /* TIMER_H_ */
