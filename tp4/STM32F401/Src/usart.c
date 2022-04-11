@@ -9,7 +9,21 @@
   * */
 void USART2_Init(uint32_t baud)
 {
-uint32_t tmp = 0, divmantissa, divfraction, apbclk;
+	//----------------GPIOA CONFIGURATION--------------------------------------
+
+	/* Activation de l'horloge GPIOA */
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOCEN;
+
+	/*Configuration des pins PA2 et PA3 en "alternate function" AF07*/
+	GPIOA->MODER &= ~(0xF << 4);
+	GPIOA->MODER |= (0xA << 4);
+
+	GPIOA->AFR[0] &= ~(0xFF << 8);
+	GPIOA->AFR[0] |= (0x77 << 8);//Alternate function AF07
+
+	//-------------------------------------------------------------------------
+
+	uint32_t tmp = 0, divmantissa, divfraction, apbclk;
 
 	/* initialisation de l'USART2 : baud,8,1,n */
 
@@ -122,6 +136,13 @@ uint32_t USART2_Print(char* str){
     return USART2_Transmit((uint8_t*) str, strlen(str));
 }
 
+
+void USART2_set_IRQ(){
+	/* définit piorité de prise en compte de l'interruption au niveau du NVIC*/
+	NVIC_SetPriority(USART2_IRQn,10);
+	/* autorise les interruptions au niveau du NVIC*/
+	NVIC_EnableIRQ(USART2_IRQn);
+}
 
 int32_t USART2_transmit_IRQ (uint8_t * data_p, uint32_t len_p){
 

@@ -11,7 +11,9 @@
 #include "stdint.h"
 #include "stm32f401xe.h"
 
-
+void GPIOB_init();
+void TIM4_init();
+void TIM4_input_capture_config();
 
 /**
   * @brief main function
@@ -22,36 +24,25 @@
 int main(void)
 {
 
-	/*=======================================================================
-	 *                            EXERCICE 2                                |
-	 * ======================================================================
-	 *
-	 * Attention pour pouvoir manipuler des floats avec printf j'ai du modifier les parametre de l'ide
-	 *
-	 */
-
-
-	/**
-	 * ------------------CONFIGURATION USART-----------------------------
-	 */
-
-	/* Activation de l'horloge GPIOA */
-	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOCEN;
-
-	/*Configuration des pins PA2 et PA3 en "alternate function" AF07*/
-	GPIOA->MODER &= ~(0xF << 4);
-	GPIOA->MODER |= (0xA << 4);
-
-	GPIOA->AFR[0] &= ~(0xFF << 8);
-	GPIOA->AFR[0] |= (0x77 << 8);//Alternate function AF07
-
 	USART2_Init(115200);
+	GPIOB_init();
+	TIM4_init();
+	TIM4_input_capture_config();
 
 
-	/**
-	 * ------------------CONFIGURATION GPIOB-----------------------------
-	 */
+	//TIM3_configuration();
+	TIM3_set_periodic_IRQ((uint32_t) 500);
+	TIM4_set_periodic_IRQ((uint32_t) 500);
+	USART2_set_IRQ();
 
+	__WFI();
+	SCB->SCR |= SCB_SCR_SLEEPONEXIT_Msk;
+
+	while(1){}
+	return 0;
+}
+
+void GPIOB_init(void){
 	/*Activation de l'horloge du GPIOB*/
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
 
@@ -64,12 +55,9 @@ int main(void)
 	/* PC13 in input mode, no pull */
 	 GPIOC->MODER &= ~GPIO_MODER_MODE13_Msk;
 	 GPIOC->PUPDR &= ~GPIO_PUPDR_PUPD13_Msk;
+}
 
-
-	/**
-	 * ------------------CONFIGURATION TIMER 4-----------------------------
-	 */
-
+void TIM4_init(){
 	/* activation de l'horloge */
 	RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;
 
@@ -86,66 +74,36 @@ int main(void)
 
 	/* reset les flags */
 	TIM4->SR = 0;
+}
 
-
-	/**
-	 * ------------------INPUT CAPTURE MODE---------------------------------
-	 */
-
+void TIM4_input_capture_config(){
 	/* désactivation input capture mode pour modification*/
-	TIM4->CCER &= ~TIM_CCER_CC1E_Msk;
-	TIM4->CCER &= ~TIM_CCER_CC2E_Msk;
+		TIM4->CCER &= ~TIM_CCER_CC1E_Msk;
+		TIM4->CCER &= ~TIM_CCER_CC2E_Msk;
 
-	/* modification de CCMRR1 */
-	//TIM4->CCMR1 &= ~TIM_CCMR1_IC2F_Msk;
-	//TIM4->CCMR1 |= TIM_CCMR1_IC2F_3; //valeur du filtre pour les rebonds
+		/* modification de CCMRR1 */
+		//TIM4->CCMR1 &= ~TIM_CCMR1_IC2F_Msk;
+		//TIM4->CCMR1 |= TIM_CCMR1_IC2F_3; //valeur du filtre pour les rebonds
 
-	/* configure capture prescaler, on met à 0 car on veut capturer tous les évènements */
-	//TIM4->CCMR1 &= ~TIM_CCMR1_IC1PSC_Msk;
-	//TIM4->CCMR1 &= ~TIM_CCMR1_IC2PSC_Msk;
+		/*Mappe IC1 et IC2 sur TI2*/
+		TIM4->CCMR1 &= ~TIM_CCMR1_CC1S_Msk;
+		TIM4->CCMR1 |= TIM_CCMR1_CC1S_1; //met le registre à '10' pour mapper IC1 à TI2
+		TIM4->CCMR1 &= ~TIM_CCMR1_CC2S_Msk;
+		TIM4->CCMR1 |= TIM_CCMR1_CC2S_0;//met le registre à '01' pour mapper IC2 à TI2
 
-	/*Mappe IC1 et IC2 sur TI2*/
-	TIM4->CCMR1 &= ~TIM_CCMR1_CC1S_Msk;
-	TIM4->CCMR1 |= TIM_CCMR1_CC1S_1; //met le registre à '10' pour mapper IC1 à TI2
-	TIM4->CCMR1 &= ~TIM_CCMR1_CC2S_Msk;
-	TIM4->CCMR1 |= TIM_CCMR1_CC2S_0;//met le registre à '01' pour mapper IC2 à TI2
+		/*Configuration de TI2FP1 sur front montant*/
+		TIM4->CCER &= ~TIM_CCER_CC1P_Msk;//met le registre à '00' pour front montant
+		TIM4->CCER &= ~TIM_CCER_CC1NP_Msk;
 
-	/*Configuration de TI2FP1 sur front montant*/
-	TIM4->CCER &= ~TIM_CCER_CC1P_Msk;//met le registre à '00' pour front montant
-	TIM4->CCER &= ~TIM_CCER_CC1NP_Msk;
-
-	/*Configuration de TI2FP1 sur front descendant*/
-	TIM4->CCER &= TIM_CCER_CC2NP_Msk;//met les bits à '01' pour configurer TI2FP1 en front descendant
-	TIM4->CCER |= TIM_CCER_CC2P_Msk;
+		/*Configuration de TI2FP1 sur front descendant*/
+		TIM4->CCER &= TIM_CCER_CC2NP_Msk;//met les bits à '01' pour configurer TI2FP1 en front descendant
+		TIM4->CCER |= TIM_CCER_CC2P_Msk;
 
 
-	/* résactivation input capture mode */
-	TIM4->CCER |= TIM_CCER_CC1E_Msk;
-	TIM4->CCER |= TIM_CCER_CC2E_Msk;
+		/* résactivation input capture mode */
+		TIM4->CCER |= TIM_CCER_CC1E_Msk;
+		TIM4->CCER |= TIM_CCER_CC2E_Msk;
 
-	/*lance le compteur*/
-	TIM4->CR1 |= TIM_CR1_CEN ;
-
-
-	/**
-	 * ------------------BOUCLE PRINCIPALE---------------------------------
-	 */
-
-	TIM4_set_periodic_IRQ(500);
-	TIM3_set_periodic_IRQ((uint32_t) 500);
-	TIM3_configuration();
-	USART_configuration();
-
-
-	/* définit piorité de prise en compte de l'interruption au niveau du NVIC*/
-	NVIC_SetPriority(USART2_IRQn,10);
-	/* autorise les interruptions au niveau du NVIC*/
-	NVIC_EnableIRQ(USART2_IRQn);
-
-
-	__WFI();
-	SCB->SCR |= SCB_SCR_SLEEPONEXIT_Msk;
-
-	while(1){}
-	return 0;
+		/*lance le compteur*/
+		TIM4->CR1 |= TIM_CR1_CEN ;
 }
