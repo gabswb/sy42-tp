@@ -35,6 +35,7 @@ int main(void)
 	TIM4_set_periodic_IRQ((uint32_t) 500);
 	USART2_set_IRQ();
 
+	/* Active l'endormissement */
 	__WFI();
 	SCB->SCR |= SCB_SCR_SLEEPONEXIT_Msk;
 
