@@ -1,8 +1,8 @@
-../Drivers/CMSIS/Include/core_cm4.h:1688:22:__NVIC_EnableIRQ	16	static
-../Drivers/CMSIS/Include/core_cm4.h:1816:22:__NVIC_SetPriority	16	static
-../Src/timer.c:12:6:TIM3_set_periodic_IRQ	16	static
-../Src/timer.c:27:6:TIM3_IRQHandler	8	static
-../Src/timer.c:39:6:TIM4_set_periodic_IRQ	16	static
-../Src/timer.c:65:6:TIM4_IRQHandler	48	static
-../Src/timer.c:115:7:compute_duration	32	static
-../Src/timer.c:131:7:TIM_set_periodic_event	24	static
+core_cm4.h:1688:22:__NVIC_EnableIRQ	16	static
+core_cm4.h:1816:22:__NVIC_SetPriority	16	static
+timer.c:12:6:TIM3_set_periodic_IRQ	16	static
+timer.c:27:6:TIM3_IRQHandler	8	static
+timer.c:39:6:TIM4_set_periodic_IRQ	16	static
+timer.c:66:6:TIM4_IRQHandler	48	static
+timer.c:116:7:compute_duration	32	static
+timer.c:132:7:TIM_set_periodic_event	24	static

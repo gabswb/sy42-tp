@@ -1,0 +1,3 @@
+app_tasks.c:50:6:start_application	24	static
+app_tasks.c:97:6:pin13_activation	272	static
+app_tasks.c:117:6:led_blinking	24	static

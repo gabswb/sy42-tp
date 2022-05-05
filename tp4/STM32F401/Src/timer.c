@@ -20,17 +20,17 @@ void TIM3_set_periodic_IRQ(uint32_t ms){
 
 	TIM_set_periodic_event(ms, TIM3);
 
-	index=0;
+	led_luminsosity=0;
 
 
 }
 void TIM3_IRQHandler(void){
 //	/* teste si le drapeau relatif à l'interruption est à '1'et test si l'interruption relative à ce drapeau est autorisée*/
  	if((TIM3->SR & TIM_SR_UIF) && (TIM3->DIER & TIM_DIER_UIE)){
- 		TIM2_set_PWM(index*100);
- 		index++;
-		if(index>10)
-			index=0;
+ 		TIM2_set_PWM(led_luminsosity*100);
+ 		led_luminsosity++;
+		if(led_luminsosity>10)
+			led_luminsosity=0;
  	}
  	/*remise à 0 du drapeau d'état*/
  	TIM3->SR &= ~TIM_SR_UIF;
@@ -53,6 +53,7 @@ void TIM4_set_periodic_IRQ(uint32_t ms){
 
 	TIM_set_periodic_event(ms, TIM4);
 
+	/**on initialise toutes les variable pour mesurer la durée de la pression à 0*/
 	duration=0;
 	begin=0;
 	end=0;
@@ -75,7 +76,7 @@ void TIM4_IRQHandler(void){
 
  	}
 
-
+	//permet de générer une interrution des qu'un overflow du TIM4 survient
  	if((TIM4->SR & TIM_SR_UIF) && (TIM4->DIER & TIM_DIER_UIE)){
  		nb_overflows++;
 

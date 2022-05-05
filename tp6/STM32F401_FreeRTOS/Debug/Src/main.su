@@ -1,0 +1,12 @@
+core_cm4.h:1657:22:__NVIC_SetPriorityGrouping	24	static
+core_cm4.h:1688:22:__NVIC_EnableIRQ	16	static
+core_cm4.h:1816:22:__NVIC_SetPriority	16	static
+main.c:30:19:get_binary_usart2_mutex	4	static
+main.c:35:6:EXTI15_10_IRQHandler	16	static
+main.c:49:6:EXTI15_10_set_IRQ	8	static
+main.c:73:6:config_stop_mode	4	static,ignoring_inline_asm
+main.c:92:5:main	8	static
+main.c:121:7:vApplicationIdleHook	16	static
+main.c:149:7:vApplicationTickHook	4	static
+main.c:161:6:assert_failed	16	static
+main.c:178:6:simple_active_wait_ms	16	static

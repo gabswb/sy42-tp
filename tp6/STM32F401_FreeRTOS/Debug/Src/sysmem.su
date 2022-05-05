@@ -1,0 +1,3 @@
+sysmem.c:23:8:_malloc_r	16	static
+sysmem.c:28:6:_free_r	16	static
+sysmem.c:34:7:_realloc_r	24	static

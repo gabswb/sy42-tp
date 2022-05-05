@@ -1,0 +1,11 @@
+core_cm4.h:1688:22:__NVIC_EnableIRQ	16	static
+core_cm4.h:1724:22:__NVIC_DisableIRQ	16	static,ignoring_inline_asm
+usart.c:9:47:USART_Init_115200	8	static
+usart.c:19:6:USART2_Init	32	static
+usart.c:81:6:USART2_DeInit	4	static
+usart.c:98:5:__io_putchar	16	static
+usart.c:111:5:__io_getchar	4	static
+usart.c:125:10:USART2_Transmit	24	static
+usart.c:150:10:USART2_Receive	32	static
+usart.c:232:9:USART2_Transmit_IRQ	16	static,ignoring_inline_asm
+usart.c:274:6:USART2_IRQHandler	16	static
