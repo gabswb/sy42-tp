@@ -36,6 +36,8 @@
 #define MCP9808_AMBIANT_REG_ADDR 	0x05 //adress of ambiant temperature register
 #define MCP9808_RESOL_REG_ADRR		0x08 //adress of resolution register
 #define MCP9808_SENS_CONF_REG_ADDR 	0x01 //adress of sensor configuration register
+#define MCP9808_UPPER_REG_ADRR		0x02 //adress of upper temperature limit register
+#define MCP9808_LOWER_REG_ADRR		0x03 //adress of lower temperature limit register
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -77,23 +79,32 @@ int main(void)
 	uint16_t MCP9808_adress = MCP9808_ADRESS << 1; // 0b011000 = 0x18 on décale de 1 car code sur 7 bits
 	uint8_t receive_buffer[2] = {0};//buffer ou on recoit les donnees de I2C
 	uint8_t transmit_data = MCP9808_AMBIANT_REG_ADDR;
-	uint8_t	register_config[2];
+	uint8_t	register_config[3];
 
 
 
 	/*Config de la precision (resolution) à 0.25°C*/
 	register_config[0] = MCP9808_RESOL_REG_ADRR;
-	register_config[1] = 0x01;
+	register_config[1] = 0x01; //bit for 0.25°C resolution
 	HAL_I2C_Master_Transmit(&hi2c1, MCP9808_adress, &register_config, (uint16_t) 2, HAL_MAX_DELAY);
 
-	/*Pour la config de l'hysteresis à 1.5°C*/
+	/*Config de l'hysteresis à 1.5°C*/
 	register_config[0] = MCP9808_SENS_CONF_REG_ADDR;
-	register_config[1] = 0b1000000000;
-	HAL_I2C_Master_Transmit(&hi2c1, MCP9808_adress, &register_config, (uint16_t) 2, HAL_MAX_DELAY);
+	register_config[1] = 0b010; //bit for 1.5°C hysteresis
+	HAL_I2C_Master_Transmit(&hi2c1, MCP9808_adress, &register_config, (uint16_t) 3, HAL_MAX_DELAY);
+
+	/*Config lower temperature limit to 24°C*/
+	register_config[0] = MCP9808_LOWER_REG_ADRR;//24 = 2^4 + 2^3
+	register_config[1] = 0b01; // bit 8 correspondant a 2^4 °C
+	register_config[2] = 0b10000000; //bit 7 correspondnat a 2^3 °C, bit 5 correspondant a 2^1°c et bit 4 a 2^0°C
+	HAL_I2C_Master_Transmit(&hi2c1, MCP9808_adress, &register_config, (uint16_t) 3, HAL_MAX_DELAY);
 
 
-
-	/*
+	/*Config upper temperature limit to 27°C*/
+	register_config[0] = MCP9808_UPPER_REG_ADRR;//27 = 2^4 + 2^3 + 2^1 + 2^0
+	register_config[1] = 0b01; // bit 8 correspondant a 2^4 °C
+	register_config[2] = 0b10110000; //bit 7 correspondnat a 2^3 °C
+	HAL_I2C_Master_Transmit(&hi2c1, MCP9808_adress, &register_config, (uint16_t) 3, HAL_MAX_DELAY);
 
 
   /* USER CODE END 1 */
@@ -162,8 +173,8 @@ int main(void)
 			  HAL_UART_Transmit(&huart2, message,  strlen(message), HAL_MAX_DELAY);
 
 		  }
-
 		  HAL_Delay(10*1000);
+		  HAL_PWR_EnterSTANDBYMode+(10*1000);
 	  }
 
     /* USER CODE END WHILE */
