@@ -20,10 +20,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "i2c.h"
+#include "rtc.h"
 #include "usart.h"
 #include "gpio.h"
-#include "string.h"
-#include "inttypes.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -72,7 +71,6 @@ void SystemClock_Config(void);
   */
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
 	HAL_StatusTypeDef status;
 
@@ -106,6 +104,19 @@ int main(void)
 	register_config[2] = 0b10110000; //bit 7 correspondnat a 2^3 °C
 	HAL_I2C_Master_Transmit(&hi2c1, MCP9808_adress, &register_config, (uint16_t) 3, HAL_MAX_DELAY);
 
+//	/* 10 seconds alarm definition */
+//	RTC_AlarmTypeDef salarmstructure;
+//	salarmstructure.Alarm = RTC_ALARM_A;
+//	salarmstructure.AlarmDateWeekDay = RTC_WEEKDAY_MONDAY;
+//	salarmstructure.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_WEEKDAY;
+//	salarmstructure.AlarmMask = RTC_ALARMMASK_DATEWEEKDAY;
+//	salarmstructure.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_NONE;
+//	salarmstructure.AlarmTime.TimeFormat = RTC_HOURFORMAT_24;
+//	salarmstructure.AlarmTime.Hours   = 0x00;
+//	salarmstructure.AlarmTime.Minutes = 0x00;
+//	salarmstructure.AlarmTime.Seconds = 0x10;
+//	salarmstructure.AlarmTime.SubSeconds = 00;
+
 
   /* USER CODE END 1 */
 
@@ -129,7 +140,95 @@ int main(void)
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_USART2_UART_Init();
+  MX_RTC_Init();
   /* USER CODE BEGIN 2 */
+  char* message = "Starting before delay\r\n";
+
+
+  //Check if woken up from standby mode:
+  if (__HAL_PWR_GET_FLAG(PWR_FLAG_SB) != RESET)
+  {
+      __HAL_PWR_CLEAR_FLAG(PWR_FLAG_SB);  // clear the flag
+
+      char* message = "Waking up from the standby mode\r\n";
+      HAL_UART_Transmit(&huart2, (uint8_t*) message, (uint16_t) strlen(message) , HAL_MAX_DELAY);
+
+      HAL_PWR_DisableWakeUpPin(PWR_WAKEUP_PIN1);
+
+      HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
+  }
+
+  //Clear the WU flag
+  __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
+  __HAL_RTC_WAKEUPTIMER_CLEAR_FLAG(&hrtc, RTC_FLAG_WUTF);
+
+  HAL_PWR_EnableWakeUpPin(PWR_WAKEUP_PIN1);
+
+  /**
+   * activate rtc wake up from stand by mode
+   * RTC_WAKEUPCLOCK_CK_SPRE_16BITS is a clock on 16 bits of frequence 1Hz
+   * So we can set the WakeUpCounter to 10 as 10s
+   */
+  HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 10, RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
+
+  /*activate alarm*/
+  //HAL_RTC_SetAlarm(&hrtc,&sAlarm,RTC_FORMAT_BIN);
+
+
+  //---------------------------------------------------------------------------------------------------------------------------------
+  // LECTURE DE LA TEMPERATURE
+
+  status = HAL_I2C_Master_Transmit(&hi2c1, MCP9808_adress, &transmit_data, (uint16_t) 1, HAL_MAX_DELAY);
+
+  if ( status != HAL_OK )
+  {
+	  char* message = "Error start\r\n";
+	  HAL_UART_Transmit(&huart2, (uint8_t*) message, (uint16_t) strlen(message) , HAL_MAX_DELAY);
+  }
+  else
+  {
+	  status = HAL_I2C_Master_Receive(&hi2c1, MCP9808_adress, receive_buffer, (uint16_t) 2, HAL_MAX_DELAY);
+
+	  if ( status != HAL_OK )
+	  {
+		  char* message = "Error master receive\r\n";
+		  HAL_UART_Transmit(&huart2, (uint8_t*) message, (uint16_t) strlen(message), HAL_MAX_DELAY);
+	  }
+	  else
+	  {
+		  float temperature=0;
+		  float f_temp[2]; //pour convertir les valeurs de receive_buffer en float
+
+		  receive_buffer[0] &= 0x1F;
+		  if((receive_buffer[0] & 0x10) == 0x10)
+		  {
+			  receive_buffer[0] &= 0x0F;
+			  temperature -= 256;
+		  }
+		  f_temp[0] = receive_buffer[0];
+		  f_temp[1] = receive_buffer[1];
+		  temperature += (f_temp[0] * 16 + f_temp[1] / 16);
+
+		  char message[256];
+		  sprintf(message, "Temperature : %f\r\n", temperature);
+		  HAL_UART_Transmit(&huart2, message,  strlen(message), HAL_MAX_DELAY);
+
+	  }
+
+  }
+
+  //-------------------------------------------------------------------------------------------------------------------------------------------
+
+  message = "Going to standby mode\r\n";
+  HAL_UART_Transmit(&huart2, (uint8_t*) message, (uint16_t) strlen(message) , HAL_MAX_DELAY);
+
+  HAL_PWR_EnterSTANDBYMode();
+
+
+
+  /*Debug print because this part of the code should not be reached*/
+  message = "After Standby Mode\r\n";
+  HAL_UART_Transmit(&huart2, (uint8_t*) message, (uint16_t) strlen(message) , HAL_MAX_DELAY);
 
   /* USER CODE END 2 */
 
@@ -137,45 +236,44 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  status = HAL_I2C_Master_Transmit(&hi2c1, MCP9808_adress, &transmit_data, (uint16_t) 1, HAL_MAX_DELAY);
-
-	  if ( status != HAL_OK )
-	  {
-		  char* message = "Error start\r\n";
-		  HAL_UART_Transmit(&huart2, (uint8_t*) message, (uint16_t) strlen(message) , HAL_MAX_DELAY);
-	  }
-	  else
-	  {
-		  status = HAL_I2C_Master_Receive(&hi2c1, MCP9808_adress, receive_buffer, (uint16_t) 2, HAL_MAX_DELAY);
-
-		  if ( status != HAL_OK )
-		  {
-			  char* message = "Error master receive\r\n";
-			  HAL_UART_Transmit(&huart2, (uint8_t*) message, (uint16_t) strlen(message), HAL_MAX_DELAY);
-		  }
-		  else
-		  {
-			  float temperature=0;
-			  float f_temp[2]; //pour convertir les valeurs de receive_buffer en float
-
-			  receive_buffer[0] &= 0x1F;
-			  if((receive_buffer[0] & 0x10) == 0x10)
-			  {
-				  receive_buffer[0] &= 0x0F;
-				  temperature -= 256;
-			  }
-			  f_temp[0] = receive_buffer[0];
-			  f_temp[1] = receive_buffer[1];
-			  temperature += (f_temp[0] * 16 + f_temp[1] / 16);
-
-			  char message[256];
-			  sprintf(message, "Temperature : %f\r\n", temperature);
-			  HAL_UART_Transmit(&huart2, message,  strlen(message), HAL_MAX_DELAY);
-
-		  }
-		  HAL_Delay(10*1000);
-		  HAL_PWR_EnterSTANDBYMode+(10*1000);
-	  }
+//	  status = HAL_I2C_Master_Transmit(&hi2c1, MCP9808_adress, &transmit_data, (uint16_t) 1, HAL_MAX_DELAY);
+//
+//	  if ( status != HAL_OK )
+//	  {
+//		  char* message = "Error start\r\n";
+//		  HAL_UART_Transmit(&huart2, (uint8_t*) message, (uint16_t) strlen(message) , HAL_MAX_DELAY);
+//	  }
+//	  else
+//	  {
+//		  status = HAL_I2C_Master_Receive(&hi2c1, MCP9808_adress, receive_buffer, (uint16_t) 2, HAL_MAX_DELAY);
+//
+//		  if ( status != HAL_OK )
+//		  {
+//			  char* message = "Error master receive\r\n";
+//			  HAL_UART_Transmit(&huart2, (uint8_t*) message, (uint16_t) strlen(message), HAL_MAX_DELAY);
+//		  }
+//		  else
+//		  {
+//			  float temperature=0;
+//			  float f_temp[2]; //pour convertir les valeurs de receive_buffer en float
+//
+//			  receive_buffer[0] &= 0x1F;
+//			  if((receive_buffer[0] & 0x10) == 0x10)
+//			  {
+//				  receive_buffer[0] &= 0x0F;
+//				  temperature -= 256;
+//			  }
+//			  f_temp[0] = receive_buffer[0];
+//			  f_temp[1] = receive_buffer[1];
+//			  temperature += (f_temp[0] * 16 + f_temp[1] / 16);
+//
+//			  char message[256];
+//			  sprintf(message, "Temperature : %f\r\n", temperature);
+//			  HAL_UART_Transmit(&huart2, message,  strlen(message), HAL_MAX_DELAY);
+//
+//		  }
+//
+//	  }
 
     /* USER CODE END WHILE */
 
@@ -192,6 +290,7 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
   /** Configure the main internal regulator output voltage
   */
@@ -200,9 +299,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
@@ -218,6 +318,12 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+  PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
   }
