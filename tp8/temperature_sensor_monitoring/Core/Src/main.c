@@ -104,18 +104,11 @@ int main(void)
 	register_config[2] = 0b10110000; //bit 7 correspondnat a 2^3 °C
 	HAL_I2C_Master_Transmit(&hi2c1, MCP9808_adress, &register_config, (uint16_t) 3, HAL_MAX_DELAY);
 
-//	/* 10 seconds alarm definition */
-//	RTC_AlarmTypeDef salarmstructure;
-//	salarmstructure.Alarm = RTC_ALARM_A;
-//	salarmstructure.AlarmDateWeekDay = RTC_WEEKDAY_MONDAY;
-//	salarmstructure.AlarmDateWeekDaySel = RTC_ALARMDATEWEEKDAYSEL_WEEKDAY;
-//	salarmstructure.AlarmMask = RTC_ALARMMASK_DATEWEEKDAY;
-//	salarmstructure.AlarmSubSecondMask = RTC_ALARMSUBSECONDMASK_NONE;
-//	salarmstructure.AlarmTime.TimeFormat = RTC_HOURFORMAT_24;
-//	salarmstructure.AlarmTime.Hours   = 0x00;
-//	salarmstructure.AlarmTime.Minutes = 0x00;
-//	salarmstructure.AlarmTime.Seconds = 0x10;
-//	salarmstructure.AlarmTime.SubSeconds = 00;
+	/*Config alert*/
+	register_config[0] = MCP9808_SENS_CONF_REG_ADDR;
+	register_config[2] = 0b01000;//comparator output -> bit 0 at 0, alert output for Tupper and Tlower-> bit 3 to 0, Alert output enable -> bit 3 at 1
+	HAL_I2C_Master_Transmit(&hi2c1, MCP9808_adress, &register_config, (uint16_t) 3, HAL_MAX_DELAY);
+
 
 
   /* USER CODE END 1 */
@@ -170,9 +163,6 @@ int main(void)
    * So we can set the WakeUpCounter to 10 as 10s
    */
   HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 10, RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
-
-  /*activate alarm*/
-  //HAL_RTC_SetAlarm(&hrtc,&sAlarm,RTC_FORMAT_BIN);
 
 
   //---------------------------------------------------------------------------------------------------------------------------------
