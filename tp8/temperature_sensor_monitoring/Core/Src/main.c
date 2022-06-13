@@ -106,7 +106,7 @@ int main(void)
 
 	/*Config alert*/
 	register_config[0] = MCP9808_SENS_CONF_REG_ADDR;
-	register_config[2] = 0b01000;//comparator output -> bit 0 at 0, alert output for Tupper and Tlower-> bit 3 to 0, Alert output enable -> bit 3 at 1
+	register_config[2] = 0b011010;//config alert mode
 	HAL_I2C_Master_Transmit(&hi2c1, MCP9808_adress, &register_config, (uint16_t) 3, HAL_MAX_DELAY);
 
 
@@ -135,8 +135,6 @@ int main(void)
   MX_USART2_UART_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
-  char* message = "Starting before delay\r\n";
-
 
   //Check if woken up from standby mode:
   if (__HAL_PWR_GET_FLAG(PWR_FLAG_SB) != RESET)
@@ -156,7 +154,6 @@ int main(void)
   __HAL_RTC_WAKEUPTIMER_CLEAR_FLAG(&hrtc, RTC_FLAG_WUTF);
 
   HAL_PWR_EnableWakeUpPin(PWR_WAKEUP_PIN1);
-
   /**
    * activate rtc wake up from stand by mode
    * RTC_WAKEUPCLOCK_CK_SPRE_16BITS is a clock on 16 bits of frequence 1Hz
@@ -209,7 +206,7 @@ int main(void)
 
   //-------------------------------------------------------------------------------------------------------------------------------------------
 
-  message = "Going to standby mode\r\n";
+  char* message = "Going to standby mode\r\n";
   HAL_UART_Transmit(&huart2, (uint8_t*) message, (uint16_t) strlen(message) , HAL_MAX_DELAY);
 
   HAL_PWR_EnterSTANDBYMode();
@@ -226,6 +223,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+	 //Useless since we use standby mode
+
+
 //	  status = HAL_I2C_Master_Transmit(&hi2c1, MCP9808_adress, &transmit_data, (uint16_t) 1, HAL_MAX_DELAY);
 //
 //	  if ( status != HAL_OK )

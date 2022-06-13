@@ -71,6 +71,7 @@ void MX_RTC_Init(void)
     Error_Handler();
   }
   /** Enable the WakeUp
+   * We redefine it in main function
   */
 //  if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 0, RTC_WAKEUPCLOCK_CK_SPRE_17BITS) != HAL_OK)
 //  {
