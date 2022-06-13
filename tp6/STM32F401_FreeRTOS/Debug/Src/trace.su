@@ -1,5 +1,0 @@
-trace.c:28:12:T1callback	16	static
-trace.c:33:12:T2callback	16	static
-trace.c:39:6:task_to_ready	16	static,ignoring_inline_asm
-trace.c:52:6:switched_in	16	static
-trace.c:83:6:switched_out	16	static
